@@ -505,7 +505,6 @@ const Swap: React.FC<SwapProps> = ({
               <ThemedText.HeadlineSmall style={{ flex: '1', margin: 'auto', textAlign: 'center' }}>
                 Load Arx Wallet
               </ThemedText.HeadlineSmall>
-
             </TitleCenteredRow>
             <LoadCardContainer>
               <p>Step 1: Scan QR code with your phone camera</p>
@@ -513,7 +512,6 @@ const Swap: React.FC<SwapProps> = ({
                 id="qr"
                 src={cardQrCode}
                 alt="n/a"
-                style={{ marginBottom: 16 }}
               />
             </LoadCardContainer>
           </div>
@@ -529,7 +527,9 @@ const Swap: React.FC<SwapProps> = ({
         </CTAButton>
       )}
       {cardAddress != '' && (
-        <p>Loading Card Address: {cardAddress}</p>
+        // <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <p>Loading Card Address: {cardAddress}</p>
+        // </div>
       )}
       {
         currentIntentHash && (
@@ -551,9 +551,13 @@ const StyledArrowLeft = styled(ArrowLeft)`
 
 const LoadCardContainer = styled.div`
   padding: 1.5rem;
+  display: flex;
   background-color: #0D111C;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const Wrapper = styled.div`
