@@ -8,7 +8,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import { ArrowLeft } from 'react-feather';
-import { TitleCenteredRow } from '../layouts/Row';
 
 import { Input } from "@components/Swap/Input";
 import { OnRamperIntentTable } from '@components/Swap/OnRamperIntentTable'
@@ -60,12 +59,13 @@ const Swap: React.FC<SwapProps> = ({
    * Contexts
    */
 
+
   const { isLoggedIn, loggedInEthereumAddress } = useAccount();
   const { usdcBalance } = useBalances();
   const { isRegistered } = useRegistration();
   const { currentIntentHash, refetchIntentHash, shouldFetchIntentHash, lastOnRampTimestamp, refetchLastOnRampTimestamp } = useOnRamperIntents();
   const { refetchDeposits, getBestDepositForAmount, shouldFetchDeposits } = useLiquidity();
-  const { rampAddress, rampAbi } = useSmartContracts();
+  const { rampAddress, rampAbi, usdcAddress } = useSmartContracts();
   const { refetchDepositCounter, shouldFetchRampState, onRampCooldownPeriod } = useRampState();
 
   /*
@@ -77,6 +77,7 @@ const Swap: React.FC<SwapProps> = ({
   const [loadCard, setLoadCard] = useState<boolean>(false);
   const [cardQrCode, setCardQrCode] = useState<string>('');
   const [cardAddress, setCardAddress] = useState<string>('');
+  const [cardBalance, setCardBalance] = useState<string>('');
 
   const [shouldConfigureSignalIntentWrite, setShouldConfigureSignalIntentWrite] = useState<boolean>(false);
 
@@ -248,7 +249,7 @@ const Swap: React.FC<SwapProps> = ({
         connectGateway(output.gate).then((gate) => {
           getCardAddress(gate).then((cardAddress) => {
             setCardAddress(cardAddress);
-            setLoadCard(false)
+            setLoadCard(false);
           });
         });
       });
@@ -447,65 +448,20 @@ const Swap: React.FC<SwapProps> = ({
           </div>
         ) : (
           <div>
-            <TitleCenteredRow style={{ paddingBottom: '1.5rem' }}>
-              <button
-                onClick={handleLoadCard}
-                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                <StyledArrowLeft/>
-              </button>
-
-        <MainContentWrapper>
-          <Input
-            label="Requesting"
-            name={`requestedUSDC`}
-            value={currentQuote.requestedUSDC}
-            onChange={event => handleInputChange(event, 'requestedUSDC')}
-            type="number"
-            accessoryLabel={usdcBalanceLabel}
-            placeholder="0"
-          />
-          <Input
-            label="You send"
-            name={`fiatToSend`}
-            value={currentQuote.fiatToSend}
-            onChange={event => handleInputChange(event, 'fiatToSend')}
-            onKeyDown={handleEnterPress}
-            type="number"
-            inputLabel="$"
-            placeholder="0.00"
-            readOnly={true}
-          />
-          {!isLoggedIn ? (
-            <CustomConnectButton
-              fullWidth={true}
-            />
-          ) : (!isRegistered && currentQuote.requestedUSDC) ? (
-            <Button
-              onClick={navigateToRegistrationHandler}
-            >
-              Complete Registration
-            </Button>
-          ) : (
-            <CTAButton
-              disabled={quoteState !== 'success'}
-              loading={isSubmitIntentLoading || isSubmitIntentMining}
-              onClick={async () => {
-                try {
-                  await writeSubmitIntentAsync?.();
-                } catch (error) {
-                  console.log('writeSubmitIntentAsync failed: ', error);
-                }
-              }}
-            >
-              {getButtonText()}
-            </CTAButton>
-          )}
-        </MainContentWrapper>
+            <RowBetween>
+              <div style={{ flex: 0.25 }}>
+                <button
+                  onClick={handleLoadCard}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                >
+                  <StyledArrowLeft/>
+                </button>
+              </div>
               <ThemedText.HeadlineSmall style={{ flex: '1', margin: 'auto', textAlign: 'center' }}>
                 Load Arx Wallet
               </ThemedText.HeadlineSmall>
-            </TitleCenteredRow>
+              <div style={{ flex: 0.25 }}></div>
+            </RowBetween>
             <LoadCardContainer>
               <p>Step 1: Scan QR code with your phone camera</p>
               <img
@@ -520,16 +476,19 @@ const Swap: React.FC<SwapProps> = ({
       </SwapModalContainer>
       {(!loadCard && cardAddress == '') && (
         <CTAButton
-          loading={isSubmitIntentLoading || isSubmitIntentMining}
+          // loading={isSubmitIntentLoading || isSubmitIntentMining}
           onClick={handleLoadCard}
         >
           Load Arx Wallet
         </CTAButton>
       )}
-      {cardAddress != '' && (
-        // <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-          <p>Loading Card Address: {cardAddress}</p>
-        // </div>
+      {cardAddress != '' && !currentIntentHash && (
+        <SwapModalContainer>
+          <ThemedText.HeadlineSmall style={{ flex: '1', margin: 'auto', textAlign: 'center', color: '#df2e2d' }}>
+            Loading Card Address
+          </ThemedText.HeadlineSmall>
+          <div style={{textAlign: 'center'}}>{cardAddress}</div>
+        </SwapModalContainer>
       )}
       {
         currentIntentHash && (
@@ -547,6 +506,14 @@ const Swap: React.FC<SwapProps> = ({
 
 const StyledArrowLeft = styled(ArrowLeft)`
   color: #FFF;
+`;
+
+const RowBetween = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
 `;
 
 const LoadCardContainer = styled.div`
